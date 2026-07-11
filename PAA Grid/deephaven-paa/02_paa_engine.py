@@ -125,6 +125,16 @@ def bs_div_rho(s: float, k: float, t: float, r: float, q: float,
     return t * s * math.exp(-q * t) * _ncdf(-d1)
 
 
+def bs_volga(s: float, k: float, t: float, r: float, q: float,
+             v: float) -> float:
+    """d2V/dvol2 (vomma), per 1.00 vol change squared."""
+    if t <= 1e-8 or v <= 1e-8:
+        return 0.0
+    d1, d2 = _d1d2(s, k, t, r, q, v)
+    vega = s * math.exp(-q * t) * _npdf(d1) * math.sqrt(t)
+    return vega * d1 * d2 / v
+
+
 # =========================================================================
 # Derived table 1: T-1 valuation and Greeks per instrument
 # =========================================================================
@@ -147,6 +157,7 @@ inst_prev = (
         "Theta = bs_theta(PrevSpot, Strike, TtmPrev, PrevRate, PrevDivYield, PrevVol, OptionType)",
         "Rho = bs_rho(PrevSpot, Strike, TtmPrev, PrevRate, PrevDivYield, PrevVol, OptionType)",
         "DivRho = bs_div_rho(PrevSpot, Strike, TtmPrev, PrevRate, PrevDivYield, PrevVol, OptionType)",
+        "Volga = bs_volga(PrevSpot, Strike, TtmPrev, PrevRate, PrevDivYield, PrevVol)",
     ])
 )
 

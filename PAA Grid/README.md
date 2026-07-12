@@ -1,12 +1,46 @@
 # PAA Grid — P&L Attribution engine for vanilla options (Deephaven)
 
 A live P&L Attribution Analysis (PAA) engine for vanilla options built as
-Deephaven Python scripts. Methodology background is in [PAA.md](PAA.md);
-the PAA Grid (attribution × spot ladder) is documented in detail in
-[PAA-GRID.md](PAA-GRID.md); how the Risk Grid and PAA Grid relate is in
-[RISK-GRID-VS-PAA-GRID.md](RISK-GRID-VS-PAA-GRID.md); why trade P&L is
-marked from execution price rather than original cost is explained in
-[TRADE-PNL-VS-COST-PNL.md](TRADE-PNL-VS-COST-PNL.md).
+Deephaven Python scripts, with a standalone Python calculator
+([paa-cal/](paa-cal/README.md)) for reproducing and fine-tuning every
+number offline, plus a full documentation set (below).
+
+## Documentation
+
+### Methodology & formulas
+
+| Doc | What it covers |
+|---|---|
+| [PAA.md](PAA.md) | PAA methodology: required source data, Taylor-expansion explain, full-revaluation waterfall, worked example |
+| [PAA-GRID.md](PAA-GRID.md) | The PAA Grid in detail: scenario definition, all formulas (incl. volga, borrDiv), tables, conventions, extensions |
+| [RISK-GRID-VS-PAA-GRID.md](RISK-GRID-VS-PAA-GRID.md) | How the two grids relate: state vs change, the exact identity connecting them, why the PAA grid audits the risk grid |
+| [DELTA-PNL-EXPLAINED.md](DELTA-PNL-EXPLAINED.md) | `DeltaPnl = PosScale × Δ × DSpot` factor by factor: units, Taylor interpretation, hedging meaning, sign checks |
+| [CONTRACT-MULTIPLIER.md](CONTRACT-MULTIPLIER.md) | Why P&L scales by the contract multiplier — and why it is not always 100 |
+
+### Design decisions
+
+| Doc | What it covers |
+|---|---|
+| [TRADE-PNL-VS-COST-PNL.md](TRADE-PNL-VS-COST-PNL.md) | Why trade P&L is marked from execution price, not original cost (the daily P&L identity, no double counting) |
+| [SOD-VS-LIVE-POSITION.md](SOD-VS-LIVE-POSITION.md) | Which position snapshot each calculation anchors on: T-1 EOD = T SOD for PAA, live position for risk |
+| [SNAPSHOT-COHERENCE.md](SNAPSHOT-COHERENCE.md) | Why attribution inputs must equal the pricer's mark-time inputs (spot, vol, rate, carry) |
+
+### Data sources & architecture
+
+| Doc | What it covers |
+|---|---|
+| [ARCHITECTURE.md](ARCHITECTURE.md) | Team / data / calculation map with Mermaid diagram; editable draw.io version in [architecture.drawio](architecture.drawio) |
+| [OPTION-PRICE-SOURCES.md](OPTION-PRICE-SOURCES.md) | Where option prices come from on a sell-side desk: vendor feeds (OPRA/NBBO) vs internal theo vs EOD marks, official names |
+| [BORRDIV-OWNERSHIP.md](BORRDIV-OWNERSHIP.md) | Which teams own the borrow/dividend carry input (dividends desk, stock loan, quant-implied) vs the div_rho Greek |
+| [GREEKS-OWNERSHIP.md](GREEKS-OWNERSHIP.md) | Who provides delta and every other Greek (quant model owner, risk-tech batch, PC/RM validation), full Greek reference, convention checklist, and a ready-to-send data-request spec |
+| [MOCK-DATA-WALKTHROUGH.md](MOCK-DATA-WALKTHROUGH.md) | End-to-end mock-data trace: every value from Tier 1 to Tier 3 with formulas, plugged-in numbers, and a debugging guide |
+
+### Runnable code
+
+| Location | What it is |
+|---|---|
+| [deephaven-paa/](deephaven-paa/) | The live Deephaven scripts (01–05) — see next section |
+| [paa-cal/](paa-cal/README.md) | Standalone stdlib-only Python calculator over editable CSV inputs; reproduces the walkthrough numbers exactly |
 
 ## Scripts (in `deephaven-paa/`, run in order, same Deephaven session)
 

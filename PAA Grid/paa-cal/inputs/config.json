@@ -1,0 +1,8 @@
+{
+  "as_of": "2026-07-11",
+  "ttm_day_count": 365,
+  "theta_day_count": 252,
+  "base_currency": "USD",
+  "spot_shifts_pct": [-20, -15, -10, -5, -2, -1, 0, 1, 2, 5, 10, 15, 20],
+  "unexplained_breach_pct": 5.0
+}

@@ -3,7 +3,10 @@
 A live P&L Attribution Analysis (PAA) engine for vanilla options built as
 Deephaven Python scripts. Methodology background is in [PAA.md](PAA.md);
 the PAA Grid (attribution × spot ladder) is documented in detail in
-[PAA-GRID.md](PAA-GRID.md).
+[PAA-GRID.md](PAA-GRID.md); how the Risk Grid and PAA Grid relate is in
+[RISK-GRID-VS-PAA-GRID.md](RISK-GRID-VS-PAA-GRID.md); why trade P&L is
+marked from execution price rather than original cost is explained in
+[TRADE-PNL-VS-COST-PNL.md](TRADE-PNL-VS-COST-PNL.md).
 
 ## Scripts (in `deephaven-paa/`, run in order, same Deephaven session)
 

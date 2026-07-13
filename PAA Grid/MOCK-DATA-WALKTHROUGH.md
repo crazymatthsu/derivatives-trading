@@ -35,6 +35,50 @@ multiplier = 100 for all options; base currency USD.
 | SAP_C260_DEC26 | 0.246 |
 | SAP_P240_SEP26 | 0.271 |
 
+### Quant / strats — pricing service publication (marks + Greeks feed)
+
+In production the quant pricing service also publishes marks **and Greeks
+together** as Tier-1 data, in the request-spec shape of
+[GREEKS-OWNERSHIP.md](GREEKS-OWNERSHIP.md). These mock values are fully
+known — Greeks are deterministic outputs of (model, inputs), and this is
+what the service would publish running Black-Scholes on the snapshots
+above (`model_version = BS-1.0`).
+
+`snap_type = EOD_OFFICIAL` (computed on product control's T-1 close —
+feeds `inst_prev`):
+
+| instrument_id | mark | delta | gamma | vega | theta | rho | div_rho | volga |
+|---|---|---|---|---|---|---|---|---|
+| AAPL_C220_DEC26 | 14.7477 | 0.5118 | 0.00998 | 56.62 | −21.36 | 41.93 | −48.45 | −1.01 |
+| AAPL_P200_DEC26 | 9.5935 | −0.3041 | 0.00792 | 49.73 | −14.62 | −33.03 | 28.79 | 24.94 |
+| MSFT_C500_SEP26 | 20.0595 | 0.4919 | 0.00722 | 86.19 | −64.57 | 42.89 | −46.76 | 0.82 |
+| MSFT_P480_SEP26 | 17.5202 | −0.3745 | 0.00604 | 81.94 | −54.37 | −38.99 | 35.60 | 17.20 |
+| SAP_C260_DEC26 | 12.5070 | 0.4519 | 0.00983 | 65.73 | −18.66 | 44.64 | −50.18 | 8.46 |
+| SAP_P240_SEP26 | 6.9350 | −0.3264 | 0.01187 | 39.69 | −27.28 | −17.15 | 15.81 | 21.08 |
+
+The `*_used` input columns of this feed equal product control's T-1
+snapshot exactly (spot_used = 214.00 for AAPL, vol_used = 0.280, …) —
+that equality is the snapshot-coherence requirement of
+[SNAPSHOT-COHERENCE.md](SNAPSHOT-COHERENCE.md), not a coincidence.
+
+`snap_type = INTRADAY` (live marks — feeds `inst_now`):
+
+| instrument_id | mark | spot_used | vol_used |
+|---|---|---|---|
+| AAPL_C220_DEC26 | 16.1951 | 215.60 | 0.292 |
+| AAPL_P200_DEC26 | 9.4354 | 215.60 | 0.318 |
+| MSFT_C500_SEP26 | 20.6775 | 495.25 | 0.249 |
+| MSFT_P480_SEP26 | 16.7675 | 495.25 | 0.296 |
+| SAP_C260_DEC26 | 13.4718 | 252.40 | 0.246 |
+| SAP_P240_SEP26 | 6.2286 | 252.40 | 0.271 |
+
+> **Demo vs production:** in this project the engine *computes* these
+> numbers itself (bs.py / script 02 plays the quant team's role), so they
+> appear again in Tier 3 Step 02-a/02-b as derived data — and match this
+> feed to the digit. In production the engine would *consume* this feed as
+> raw source data and skip the computation; either way every downstream
+> P&L number is identical.
+
 ### Rates & dividends team
 
 | | USD | EUR | | AAPL | MSFT | SAP |
@@ -99,6 +143,10 @@ Tier 1 values land unchanged in keyed tables; only the shape changes:
 ## Tier 3 — Calculations, step by step
 
 ### Step 02-a: `inst_prev` — T-1 marks and Greeks
+
+In this demo these are **computed** here; in production they **arrive** as
+the quant team's EOD_OFFICIAL feed shown in Tier 1 — the numbers are
+identical by construction.
 
 Formulas (all at **prev** market, `TtmPrev = Ttm + 1/252`):
 

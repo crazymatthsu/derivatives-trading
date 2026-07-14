@@ -287,6 +287,7 @@ Actual(+5%) = ScenarioPnl(+5%) + Actual(0%) → 93,705 + 21,711 = 115,416 ✓.
 | NewTradePnl looks off | `executions` rows: side sign, qty, cost = Σ qty×price |
 | Book totals off in USD | FX columns: FxPnl uses PrevPrice, conversion uses live FX |
 
-Reproduce all numbers: the throwaway calc script mirrors
-[02_paa_engine.py](deephaven-paa/02_paa_engine.py) exactly — freeze
-`spot_live` at 215.60 / 495.25 / 252.40 and every figure above falls out.
+Reproduce all numbers with the standalone calculator in
+[paa-cal/](paa-cal/README.md): `cd paa-cal && python3 run_paa.py all`. Its
+inputs ship with the exact values above (live spot fixed at
+215.60 / 495.25 / 252.40), and every figure in this document falls out.

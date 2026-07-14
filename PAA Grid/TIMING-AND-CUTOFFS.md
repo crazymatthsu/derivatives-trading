@@ -114,9 +114,12 @@ market-stale (residual error ≈ gamma × untracked spot move — refresh
 Greeks faster on gamma-heavy books). The reverse — fresh Greeks + stale
 positions — is far more dangerous: the desk that bought 500
 delta-equivalent ten minutes ago and doesn't see it is unhedged without
-knowing. Deephaven gets this right by construction: `executions` is a live
-table, so a position-aware risk grid re-aggregates on every fill within the
-same update cycle, independently of when `spot_live` last ticked.
+knowing. Deephaven supports this naturally: `executions` is a live table,
+so a position-aware risk grid re-aggregates on every fill within the same
+update cycle, independently of when `spot_live` last ticked. (Note: the
+*shipped* [04_risk_grid.py](deephaven-paa/04_risk_grid.py) still scales by
+`SODQty` only — the live-position variant is the known limitation and fix
+described in [SOD-VS-LIVE-POSITION.md](SOD-VS-LIVE-POSITION.md).)
 
 ---
 

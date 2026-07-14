@@ -85,7 +85,7 @@ schemas and keys; nothing downstream changes.
 
 | Table | Derivation |
 |---|---|
-| `inst_prev` | Black-Scholes T-1 mark + Greeks (Δ, Γ, vega, θ, ρ, div-rho) per instrument at prev-close market, TTM+1 day |
+| `inst_prev` | Black-Scholes T-1 mark + Greeks (Δ, Γ, vega, θ, ρ, div-rho, volga) per instrument at prev-close market, TTM+1 day |
 | `inst_now` | Black-Scholes live mark per instrument at live market |
 | `risk` | `inst_prev` ⋈ `inst_now` — full per-instrument risk/valuation view |
 | `trade_pnl` | Executions aggregated to (Book, Instrument): signed qty, cost, `NewTradePnl = mult × (TradedQty × CurrPrice − TradedCost)` |
@@ -125,8 +125,9 @@ Roll-ups: `paa_grid_by_underlying`, `paa_grid_by_book`, `paa_grid_firm`, `paa_gr
 
 Scenario per grid row: spot moves T-1 → live × (1 + shift); vol/rate/borrow-div
 moves are the actual live T-1 → T changes; time rolls one trading day. The 0%
-row reproduces the live PAA. All Greeks are T-1 (start-of-day), position-scaled
-by `SODQty × Mult`:
+row reproduces the live PAA (exactly for ActualPnl; its ExplainedPnl adds the
+volga term the flat `paa` table omits). All Greeks are T-1 (start-of-day),
+position-scaled by `SODQty × Mult`:
 
 ```
 DSpot       = ShiftedSpot − PrevSpot          ShiftedSpot = Spot × (1 + s)

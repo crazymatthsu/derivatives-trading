@@ -22,6 +22,8 @@ Each row of the ladder (−20%, −15%, −10%, −5%, −2%, −1%, 0%, +1%, +2
 - **Spot** moves from the T-1 close (`PrevSpot`) to
   `ShiftedSpot = live Spot × (1 + shift)`. The **0% row therefore reproduces
   today's live PAA** — the grid is always centered on the current market.
+  (Exactly for `ActualPnl`; `ExplainedPnl` additionally carries the volga
+  term, which the flat `paa` table stops short of.)
 - **Vol, rate, and borrow/dividend** moves are the *actual* live T-1 → T
   changes (`dσ`, `dr`, `dq`) — the same at every ladder level.
 - **Time** rolls one trading day (T-1 close → T).

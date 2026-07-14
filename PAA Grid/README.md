@@ -24,6 +24,7 @@ number offline, plus a full documentation set (below).
 | [TRADE-PNL-VS-COST-PNL.md](TRADE-PNL-VS-COST-PNL.md) | Why trade P&L is marked from execution price, not original cost (the daily P&L identity, no double counting) |
 | [SOD-VS-LIVE-POSITION.md](SOD-VS-LIVE-POSITION.md) | Which position snapshot each calculation anchors on: T-1 EOD = T SOD for PAA, live position for risk |
 | [SNAPSHOT-COHERENCE.md](SNAPSHOT-COHERENCE.md) | Why attribution inputs must equal the pricer's mark-time inputs (spot, vol, rate, carry) |
+| [TIMING-AND-CUTOFFS.md](TIMING-AND-CUTOFFS.md) | Snapshot time vs run time vs trade time: P&L is as-of the snapshot, trade cut-off must equal snap time, positions flow to risk in real time |
 
 ### Data sources & architecture
 

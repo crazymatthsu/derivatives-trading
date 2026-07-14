@@ -23,10 +23,16 @@ fixed and documented by whoever owns the model.
 
 ### 2. Who runs the computation: the risk technology / middle-office batch
 
-For PAA, the Greeks in the attribution are **T-1 start-of-day** Greeks — so
-operationally they are produced by the end-of-day risk batch: after product
-control signs off the T-1 marks, the batch calls the quant library on the
-official close snapshot and persists marks *and* Greeks together. That
+For PAA, the Greeks in the attribution are computed **on the T-1 EOD
+official close** — the same snapshot then serves as day T's start-of-day
+(SOD) Greeks; "T-1 EOD Greeks" and "T SOD Greeks" are two names for one
+set of numbers, separated only by the overnight batch. (Not "T-1 SOD",
+which would be the T-2 close — a window mismatch; and not T EOD/live
+Greeks, which would be lookahead that double-counts gamma.) Operationally
+they are produced by the end-of-day risk batch: after product control
+signs off the T-1 marks, the batch calls the quant library on the official
+close snapshot — T-1's market *and* T-1's time-to-expiry — and persists
+marks *and* Greeks together. That
 persisted set is what `inst_prev` in
 [02_paa_engine.py](deephaven-paa/02_paa_engine.py) mimics. The batch is
 owned by risk tech, but it executes the quant team's library — it does not

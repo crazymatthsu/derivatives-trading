@@ -1,114 +1,141 @@
 <mxfile host="app.diagrams.net" agent="claude-code" version="24.7.7">
   <diagram id="paa-risk-grid-arch" name="PAA and Risk Grid architecture">
-    <mxGraphModel dx="1200" dy="900" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1000" pageHeight="900" math="0" shadow="0">
+    <mxGraphModel dx="1200" dy="1100" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1000" pageHeight="1240" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
 
-        <mxCell id="teamsC" value="Data-providing teams" style="rounded=1;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#999999;dashed=1;verticalAlign=top;align=left;spacingLeft=10;spacingTop=4;fontStyle=1;fontSize=13;" vertex="1" parent="1">
+        <mxCell id="teamsC" value="Data-providing teams (publish to AMPS)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#999999;dashed=1;verticalAlign=top;align=left;spacingLeft=10;spacingTop=4;fontStyle=1;fontSize=13;" vertex="1" parent="1">
           <mxGeometry x="40" y="40" width="920" height="190" as="geometry" />
         </mxCell>
-        <mxCell id="srcC" value="Deephaven keyed source tables — 01_paa_source_tables.py (each market table: T-1 snapshot + live)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#999999;dashed=1;verticalAlign=top;align=left;spacingLeft=10;spacingTop=4;fontStyle=1;fontSize=13;" vertex="1" parent="1">
-          <mxGeometry x="40" y="280" width="920" height="180" as="geometry" />
+        <mxCell id="ampsC" value="AMPS messaging server — operational data store (EC2, replicated pair across AZs)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#999999;dashed=1;verticalAlign=top;align=left;spacingLeft=10;spacingTop=4;fontStyle=1;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="40" y="270" width="920" height="110" as="geometry" />
         </mxCell>
-        <mxCell id="calcC" value="Calculation layer (Deephaven; in production: pricing in quant service, joins/attribution/roll-ups in Deephaven)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#999999;dashed=1;verticalAlign=top;align=left;spacingLeft=10;spacingTop=4;fontStyle=1;fontSize=13;" vertex="1" parent="1">
-          <mxGeometry x="40" y="510" width="920" height="190" as="geometry" />
+        <mxCell id="srcC" value="Deephaven keyed source tables — 01_paa_source_tables.py (ingest adapters: sow_and_subscribe → TablePublisher → last_by)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#999999;dashed=1;verticalAlign=top;align=left;spacingLeft=10;spacingTop=4;fontStyle=1;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="40" y="420" width="920" height="180" as="geometry" />
         </mxCell>
-        <mxCell id="outC" value="Consumers" style="rounded=1;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#999999;dashed=1;verticalAlign=top;align=left;spacingLeft=10;spacingTop=4;fontStyle=1;fontSize=13;" vertex="1" parent="1">
-          <mxGeometry x="40" y="750" width="920" height="110" as="geometry" />
+        <mxCell id="calcC" value="Calculation layer — Deephaven on EKS: stateless Deployment, 1..N identical replicas all converging from AMPS; KEDA scales the pool for read fan-out (compute scales by book partitioning, not replicas)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#999999;dashed=1;verticalAlign=top;align=left;spacingLeft=10;spacingTop=4;fontStyle=1;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="40" y="650" width="920" height="190" as="geometry" />
+        </mxCell>
+        <mxCell id="distC" value="Result distribution" style="rounded=1;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#999999;dashed=1;verticalAlign=top;align=left;spacingLeft=10;spacingTop=4;fontStyle=1;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="40" y="880" width="920" height="110" as="geometry" />
+        </mxCell>
+        <mxCell id="res" value="Path A — AMPS results topics (publisher adapter)&#10;results/paa · results/paa_summary · results/risk_grid · results/paa_grid" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#DAE8FC;strokeColor=#6C8EBF;" vertex="1" parent="1">
+          <mxGeometry x="70" y="915" width="450" height="55" as="geometry" />
+        </mxCell>
+        <mxCell id="bar" value="Path B — Barrage / Web UI (read-replica pool)&#10;NLB source-IP affinity · KEDA on subscription count · TLS + auth" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#DAE8FC;strokeColor=#6C8EBF;" vertex="1" parent="1">
+          <mxGeometry x="560" y="915" width="370" height="55" as="geometry" />
+        </mxCell>
+        <mxCell id="onpremC" value="Consumers — on-prem" style="rounded=1;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#999999;dashed=1;verticalAlign=top;align=left;spacingLeft=10;spacingTop=4;fontStyle=1;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="40" y="1030" width="450" height="140" as="geometry" />
+        </mxCell>
+        <mxCell id="eksnsC" value="Consumers — EKS, other namespace" style="rounded=1;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#999999;dashed=1;verticalAlign=top;align=left;spacingLeft=10;spacingTop=4;fontStyle=1;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="530" y="1030" width="430" height="140" as="geometry" />
         </mxCell>
 
-        <mxCell id="mdt" value="Market data tech&#10;Activ / B-PIPE / Elektron (OPRA)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E1D5E7;strokeColor=#9673A6;" vertex="1" parent="1">
+        <mxCell id="mdt" value="Market data tech&#10;md/spot, md/fx" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E1D5E7;strokeColor=#9673A6;" vertex="1" parent="1">
           <mxGeometry x="70" y="80" width="270" height="50" as="geometry" />
         </mxCell>
-        <mxCell id="quant" value="Quant / strats&#10;vol surface, pricing model" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E1D5E7;strokeColor=#9673A6;" vertex="1" parent="1">
+        <mxCell id="quant" value="Quant / strats&#10;md/vol, val/greeks (marks + Greeks + inputs)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E1D5E7;strokeColor=#9673A6;" vertex="1" parent="1">
           <mxGeometry x="370" y="80" width="260" height="50" as="geometry" />
         </mxCell>
-        <mxCell id="rates" value="Rates &amp; dividends team&#10;curves, div/borrow yields" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E1D5E7;strokeColor=#9673A6;" vertex="1" parent="1">
+        <mxCell id="rates" value="Rates &amp; dividends team&#10;md/rates, md/carry" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E1D5E7;strokeColor=#9673A6;" vertex="1" parent="1">
           <mxGeometry x="660" y="80" width="270" height="50" as="geometry" />
         </mxCell>
-        <mxCell id="desk" value="Trading desk OMS/EMS&#10;orders, executions" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E1D5E7;strokeColor=#9673A6;" vertex="1" parent="1">
+        <mxCell id="desk" value="Trading desk OMS/EMS&#10;trades/orders, trades/executions" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E1D5E7;strokeColor=#9673A6;" vertex="1" parent="1">
           <mxGeometry x="70" y="155" width="270" height="50" as="geometry" />
         </mxCell>
-        <mxCell id="ops" value="Operations / middle office&#10;SOD positions, security master" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E1D5E7;strokeColor=#9673A6;" vertex="1" parent="1">
+        <mxCell id="ops" value="Operations / middle office&#10;refdata/instrument, positions/sod" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E1D5E7;strokeColor=#9673A6;" vertex="1" parent="1">
           <mxGeometry x="370" y="155" width="260" height="50" as="geometry" />
         </mxCell>
-        <mxCell id="pc" value="Product control&#10;T-1 official marks / settlements" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E1D5E7;strokeColor=#9673A6;" vertex="1" parent="1">
+        <mxCell id="pc" value="Product control&#10;eod/official (T-1 marks / settlements)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E1D5E7;strokeColor=#9673A6;" vertex="1" parent="1">
           <mxGeometry x="660" y="155" width="270" height="50" as="geometry" />
         </mxCell>
 
+        <mxCell id="sow" value="SOW topics (last-value cache per key)&#10;refdata/instrument · positions/sod · md/* · val/greeks · eod/official" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#DAE8FC;strokeColor=#6C8EBF;" vertex="1" parent="1">
+          <mxGeometry x="70" y="305" width="470" height="55" as="geometry" />
+        </mxCell>
+        <mxCell id="txlog" value="Transaction log (bookmark replay from SOD)&#10;trades/executions · trades/orders" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#DAE8FC;strokeColor=#6C8EBF;" vertex="1" parent="1">
+          <mxGeometry x="570" y="305" width="360" height="55" as="geometry" />
+        </mxCell>
+
         <mxCell id="tspot" value="spot_prev / spot_live" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F5F5F5;strokeColor=#666666;" vertex="1" parent="1">
-          <mxGeometry x="60" y="315" width="165" height="40" as="geometry" />
+          <mxGeometry x="60" y="455" width="165" height="40" as="geometry" />
         </mxCell>
         <mxCell id="tvol" value="vol_prev / vol_live" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F5F5F5;strokeColor=#666666;" vertex="1" parent="1">
-          <mxGeometry x="240" y="315" width="160" height="40" as="geometry" />
+          <mxGeometry x="240" y="455" width="160" height="40" as="geometry" />
         </mxCell>
         <mxCell id="trate" value="rates_prev / rates_live" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F5F5F5;strokeColor=#666666;" vertex="1" parent="1">
-          <mxGeometry x="415" y="315" width="175" height="40" as="geometry" />
+          <mxGeometry x="415" y="455" width="175" height="40" as="geometry" />
         </mxCell>
         <mxCell id="tdiv" value="div_prev / div_live" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F5F5F5;strokeColor=#666666;" vertex="1" parent="1">
-          <mxGeometry x="605" y="315" width="160" height="40" as="geometry" />
+          <mxGeometry x="605" y="455" width="160" height="40" as="geometry" />
         </mxCell>
         <mxCell id="tfx" value="fx_prev / fx_live" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F5F5F5;strokeColor=#666666;" vertex="1" parent="1">
-          <mxGeometry x="780" y="315" width="155" height="40" as="geometry" />
+          <mxGeometry x="780" y="455" width="155" height="40" as="geometry" />
         </mxCell>
         <mxCell id="tins" value="instrument" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F5F5F5;strokeColor=#666666;" vertex="1" parent="1">
-          <mxGeometry x="60" y="385" width="140" height="40" as="geometry" />
+          <mxGeometry x="60" y="525" width="140" height="40" as="geometry" />
         </mxCell>
         <mxCell id="tpos" value="book_position" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F5F5F5;strokeColor=#666666;" vertex="1" parent="1">
-          <mxGeometry x="220" y="385" width="150" height="40" as="geometry" />
+          <mxGeometry x="220" y="525" width="150" height="40" as="geometry" />
         </mxCell>
         <mxCell id="tord" value="orders" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F5F5F5;strokeColor=#666666;" vertex="1" parent="1">
-          <mxGeometry x="390" y="385" width="110" height="40" as="geometry" />
+          <mxGeometry x="390" y="525" width="110" height="40" as="geometry" />
         </mxCell>
         <mxCell id="texe" value="executions" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F5F5F5;strokeColor=#666666;" vertex="1" parent="1">
-          <mxGeometry x="520" y="385" width="140" height="40" as="geometry" />
+          <mxGeometry x="520" y="525" width="140" height="40" as="geometry" />
         </mxCell>
 
         <mxCell id="eng" value="02_paa_engine.py — BS marks + Greeks (incl. volga), Taylor attribution, trade P&amp;L" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#D5E8D4;strokeColor=#82B366;" vertex="1" parent="1">
-          <mxGeometry x="260" y="545" width="480" height="55" as="geometry" />
+          <mxGeometry x="260" y="685" width="480" height="55" as="geometry" />
         </mxCell>
         <mxCell id="roll" value="03_paa_rollups.py&#10;aggregation, summary stats, 5% check" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#D5E8D4;strokeColor=#82B366;" vertex="1" parent="1">
-          <mxGeometry x="70" y="630" width="270" height="50" as="geometry" />
+          <mxGeometry x="70" y="770" width="270" height="50" as="geometry" />
         </mxCell>
         <mxCell id="rg" value="04_risk_grid.py&#10;Greeks × spot ladder" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#D5E8D4;strokeColor=#82B366;" vertex="1" parent="1">
-          <mxGeometry x="370" y="630" width="260" height="50" as="geometry" />
+          <mxGeometry x="370" y="770" width="260" height="50" as="geometry" />
         </mxCell>
         <mxCell id="pg" value="05_paa_grid.py&#10;attribution × spot ladder" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#D5E8D4;strokeColor=#82B366;" vertex="1" parent="1">
-          <mxGeometry x="660" y="630" width="270" height="50" as="geometry" />
+          <mxGeometry x="660" y="770" width="270" height="50" as="geometry" />
         </mxCell>
 
-        <mxCell id="pcout" value="Product control&#10;P&amp;L sign-off" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFE6CC;strokeColor=#D79B00;" vertex="1" parent="1">
-          <mxGeometry x="70" y="785" width="270" height="50" as="geometry" />
+        <mxCell id="pcout" value="Product control apps&#10;P&amp;L sign-off (AMPS-native)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFE6CC;strokeColor=#D79B00;" vertex="1" parent="1">
+          <mxGeometry x="60" y="1075" width="200" height="60" as="geometry" />
         </mxCell>
-        <mxCell id="trd" value="Traders&#10;hedging decisions" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFE6CC;strokeColor=#D79B00;" vertex="1" parent="1">
-          <mxGeometry x="370" y="785" width="260" height="50" as="geometry" />
+        <mxCell id="trd" value="Trader apps / desktops&#10;hedging decisions" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFE6CC;strokeColor=#D79B00;" vertex="1" parent="1">
+          <mxGeometry x="280" y="1075" width="190" height="60" as="geometry" />
         </mxCell>
-        <mxCell id="rm" value="Risk management&#10;model validation" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFE6CC;strokeColor=#D79B00;" vertex="1" parent="1">
-          <mxGeometry x="660" y="785" width="270" height="50" as="geometry" />
+        <mxCell id="rm" value="Risk services &amp; dashboards&#10;model validation" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFE6CC;strokeColor=#D79B00;" vertex="1" parent="1">
+          <mxGeometry x="555" y="1075" width="380" height="60" as="geometry" />
         </mxCell>
 
-        <mxCell id="e1" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;" edge="1" parent="1" source="mdt" target="tspot"><mxGeometry relative="1" as="geometry" /></mxCell>
-        <mxCell id="e2" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;" edge="1" parent="1" source="mdt" target="tfx"><mxGeometry relative="1" as="geometry" /></mxCell>
-        <mxCell id="e3" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;" edge="1" parent="1" source="quant" target="tvol"><mxGeometry relative="1" as="geometry" /></mxCell>
-        <mxCell id="e4" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;" edge="1" parent="1" source="rates" target="trate"><mxGeometry relative="1" as="geometry" /></mxCell>
-        <mxCell id="e5" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;" edge="1" parent="1" source="rates" target="tdiv"><mxGeometry relative="1" as="geometry" /></mxCell>
-        <mxCell id="e6" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;" edge="1" parent="1" source="desk" target="tord"><mxGeometry relative="1" as="geometry" /></mxCell>
-        <mxCell id="e7" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;" edge="1" parent="1" source="desk" target="texe"><mxGeometry relative="1" as="geometry" /></mxCell>
-        <mxCell id="e8" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;" edge="1" parent="1" source="ops" target="tpos"><mxGeometry relative="1" as="geometry" /></mxCell>
-        <mxCell id="e9" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;" edge="1" parent="1" source="ops" target="tins"><mxGeometry relative="1" as="geometry" /></mxCell>
-        <mxCell id="e10" value="T-1 snapshot side of every market table" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;dashed=1;fontSize=11;" edge="1" parent="1" source="pc" target="srcC"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e1" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;" edge="1" parent="1" source="mdt" target="sow"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e2" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;" edge="1" parent="1" source="quant" target="sow"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e3" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;" edge="1" parent="1" source="rates" target="sow"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e4" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;" edge="1" parent="1" source="ops" target="sow"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e5" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;" edge="1" parent="1" source="pc" target="sow"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e6" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;" edge="1" parent="1" source="desk" target="txlog"><mxGeometry relative="1" as="geometry" /></mxCell>
 
-        <mxCell id="e11" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeWidth=2;" edge="1" parent="1" source="srcC" target="eng"><mxGeometry relative="1" as="geometry" /></mxCell>
-        <mxCell id="e12" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;" edge="1" parent="1" source="eng" target="roll"><mxGeometry relative="1" as="geometry" /></mxCell>
-        <mxCell id="e13" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;" edge="1" parent="1" source="eng" target="rg"><mxGeometry relative="1" as="geometry" /></mxCell>
-        <mxCell id="e14" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;" edge="1" parent="1" source="eng" target="pg"><mxGeometry relative="1" as="geometry" /></mxCell>
-        <mxCell id="e15" value="direct read" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;dashed=1;fontSize=11;" edge="1" parent="1" source="tpos" target="rg"><mxGeometry relative="1" as="geometry" /></mxCell>
-        <mxCell id="e16" value="direct read" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;dashed=1;fontSize=11;" edge="1" parent="1" source="tpos" target="pg"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e7" value="sow_and_subscribe" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeWidth=2;fontSize=11;" edge="1" parent="1" source="sow" target="srcC"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e8" value="bookmark replay from SOD" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeWidth=2;fontSize=11;" edge="1" parent="1" source="txlog" target="srcC"><mxGeometry relative="1" as="geometry" /></mxCell>
 
-        <mxCell id="e17" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;" edge="1" parent="1" source="roll" target="pcout"><mxGeometry relative="1" as="geometry" /></mxCell>
-        <mxCell id="e18" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;" edge="1" parent="1" source="rg" target="trd"><mxGeometry relative="1" as="geometry" /></mxCell>
-        <mxCell id="e19" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;" edge="1" parent="1" source="pg" target="rm"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e9" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeWidth=2;" edge="1" parent="1" source="srcC" target="eng"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e10" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;" edge="1" parent="1" source="eng" target="roll"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e11" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;" edge="1" parent="1" source="eng" target="rg"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e12" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;" edge="1" parent="1" source="eng" target="pg"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e13" value="direct read" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;dashed=1;fontSize=11;" edge="1" parent="1" source="tpos" target="rg"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e14" value="direct read" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;dashed=1;fontSize=11;" edge="1" parent="1" source="tpos" target="pg"><mxGeometry relative="1" as="geometry" /></mxCell>
+
+        <mxCell id="e15" value="publisher adapter (singleton — one replica only)" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;fontSize=11;" edge="1" parent="1" source="roll" target="res"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e16" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;" edge="1" parent="1" source="rg" target="res"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e17" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;" edge="1" parent="1" source="pg" target="res"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e18" value="all ticking tables" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;dashed=1;fontSize=11;" edge="1" parent="1" source="calcC" target="bar"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e19" value="on-prem AMPS replica (replication over DX/VPN)" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;fontSize=11;" edge="1" parent="1" source="res" target="pcout"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e20" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;" edge="1" parent="1" source="res" target="trd"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e21" value="internal NLB + Direct Connect/VPN + private DNS" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;fontSize=11;" edge="1" parent="1" source="bar" target="trd"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e22" value="cross-namespace ClusterIP + NetworkPolicy" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;fontSize=11;" edge="1" parent="1" source="bar" target="rm"><mxGeometry relative="1" as="geometry" /></mxCell>
+        <mxCell id="e23" value="decoupled option" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;dashed=1;fontSize=11;" edge="1" parent="1" source="res" target="rm"><mxGeometry relative="1" as="geometry" /></mxCell>
       </root>
     </mxGraphModel>
   </diagram>

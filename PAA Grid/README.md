@@ -35,6 +35,7 @@ number offline, plus a full documentation set (below).
 | [BORRDIV-OWNERSHIP.md](BORRDIV-OWNERSHIP.md) | Which teams own the borrow/dividend carry input (dividends desk, stock loan, quant-implied) vs the div_rho Greek |
 | [GREEKS-OWNERSHIP.md](GREEKS-OWNERSHIP.md) | Who provides delta and every other Greek (quant model owner, risk-tech batch, PC/RM validation), full Greek reference, convention checklist, and a ready-to-send data-request spec |
 | [MOCK-DATA-WALKTHROUGH.md](MOCK-DATA-WALKTHROUGH.md) | End-to-end mock-data trace: every value from Tier 1 to Tier 3 with formulas, plugged-in numbers, and a debugging guide |
+| [DEPLOYMENT-AMPS-EKS.md](DEPLOYMENT-AMPS-EKS.md) | Infrastructure: Deephaven as a stateless Deployment on EKS (why not StatefulSet), AMPS on EC2 as the operational data store (topic design, ingest adapters, HA twins), consumer connectivity for on-prem + cross-namespace EKS (AMPS results topics vs Barrage), and scaling the Barrage tier as a read-replica pool with connection-affinity LB + KEDA |
 
 ### Runnable code
 

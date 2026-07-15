@@ -21,6 +21,18 @@ flowchart TD
         PC["Product control<br/>(T-1 official marks / settlements)"]
     end
 
+    subgraph AMPS["AMPS messaging server (EC2, replicated pair) — operational data store"]
+        SOW["SOW topics (last-value cache per key)<br/>refdata/instrument · positions/sod · md/spot · md/fx<br/>md/vol · md/rates · md/carry · val/greeks · eod/official"]
+        TXLOG["Transaction log (bookmark replay)<br/>trades/executions · trades/orders"]
+    end
+
+    MDT -- "md/spot, md/fx" --> SOW
+    QUANT -- "md/vol, val/greeks" --> SOW
+    RATES -- "md/rates, md/carry" --> SOW
+    OPS -- "refdata, positions/sod" --> SOW
+    PC -- "eod/official (T-1 snapshots)" --> SOW
+    DESK -- "orders, executions" --> TXLOG
+
     subgraph SRC["Deephaven keyed source tables — 01_paa_source_tables.py"]
         T_SPOT["spot_prev / spot_live"]
         T_FX["fx_prev / fx_live"]
@@ -33,18 +45,10 @@ flowchart TD
         T_INS["instrument"]
     end
 
-    MDT --> T_SPOT
-    MDT --> T_FX
-    QUANT --> T_VOL
-    RATES --> T_RATE
-    RATES --> T_DIV
-    DESK --> T_ORD
-    DESK --> T_EXE
-    OPS --> T_POS
-    OPS --> T_INS
-    PC -. "T-1 snapshot side of every market table" .-> SRC
+    SOW -- "ingest adapters: sow_and_subscribe → TablePublisher → last_by" --> SRC
+    TXLOG -- "bookmark replay from SOD → append" --> SRC
 
-    subgraph CALC["Calculation layer"]
+    subgraph CALC["Calculation layer — Deephaven on EKS (1..N identical replicas, all converging from AMPS; KEDA scales the pool for read fan-out)"]
         ENG["02_paa_engine.py<br/>BS marks + Greeks, Taylor attribution, trade P&L"]
         ROLL["03_paa_rollups.py<br/>aggregation, summary stats, 5% check"]
         RG["04_risk_grid.py<br/>Greeks × spot ladder"]
@@ -59,15 +63,30 @@ flowchart TD
     T_POS -.-> PG
     T_EXE -.-> ENG
 
-    subgraph OUT["Consumers"]
-        PCOUT["Product control<br/>P&L sign-off"]
-        TRD["Traders<br/>hedging decisions"]
-        RM["Risk management<br/>model validation"]
+    subgraph DIST["Result distribution"]
+        RES["AMPS results topics (Path A)<br/>results/paa · results/paa_summary<br/>results/risk_grid · results/paa_grid"]
+        BAR["Barrage / Web UI (Path B)<br/>read-replica pool · NLB source-IP affinity<br/>KEDA on subscription count · TLS + auth"]
     end
 
-    ROLL --> PCOUT
-    RG --> TRD
-    PG --> RM
+    ROLL -- "publisher adapter (singleton — one replica only)" --> RES
+    RG -- "publisher adapter" --> RES
+    PG -- "publisher adapter" --> RES
+    ENG -. "all ticking tables (each replica serves its pinned clients)" .-> BAR
+
+    subgraph ONPREM["Consumers — on-prem"]
+        PCOUT["Product control apps<br/>P&L sign-off"]
+        TRD["Trader apps / desktops<br/>hedging decisions"]
+    end
+
+    subgraph EKSNS["Consumers — EKS, other namespace"]
+        RM["Risk services & dashboards<br/>model validation"]
+    end
+
+    RES -- "on-prem AMPS replica (native replication over DX/VPN)" --> PCOUT
+    RES --> TRD
+    BAR -- "internal NLB + Direct Connect/VPN + Route 53 private DNS" --> TRD
+    BAR -- "cross-namespace ClusterIP + NetworkPolicy" --> RM
+    RES -.-> RM
 ```
 
 ## Who provides which source table
@@ -95,13 +114,36 @@ Deephaven. In production at a sell-side firm, that box splits in two:
    the Taylor attribution arithmetic, trade P&L from executions, the ladder
    cross-joins for both grids, and incremental roll-ups — all ticking.
 
-Output routing:
+Output routing (consumers live on-prem and in another EKS namespace; two
+distribution paths, detailed in
+[DEPLOYMENT-AMPS-EKS.md](DEPLOYMENT-AMPS-EKS.md)):
 
 - **Roll-ups + unexplained-breach check (03)** → product control (P&L
-  sign-off, attribution quality monitoring)
-- **Risk Grid (04)** → traders (hedging: "what is my delta if spot gaps 5%")
-- **PAA Grid (05)** → risk management (model validation — it audits the risk
-  grid's Greeks; see [RISK-GRID-VS-PAA-GRID.md](RISK-GRID-VS-PAA-GRID.md))
+  sign-off) — on-prem, via AMPS `results/paa` + `results/paa_summary`
+  topics (Path A, on-prem AMPS replica)
+- **Risk Grid (04)** → traders (hedging: "what is my delta if spot gaps
+  5%") — on-prem apps via `results/risk_grid`; interactive users via
+  Barrage/Web UI over the internal NLB + Direct Connect/VPN (Path B)
+- **PAA Grid (05)** → risk management (model validation — it audits the
+  risk grid's Greeks; see
+  [RISK-GRID-VS-PAA-GRID.md](RISK-GRID-VS-PAA-GRID.md)) — services in the
+  other EKS namespace via cross-namespace Barrage (ClusterIP +
+  NetworkPolicy), or `results/paa_grid` where decoupling matters
+
+Rule of thumb: **systems consume the AMPS results topics; humans exploring
+consume Barrage/Web UI.**
+
+## Transport layer: AMPS
+
+All source teams publish to an AMPS messaging server (running on EC2, as a
+replicated pair) rather than feeding Deephaven directly. SOW topics carry
+keyed last-value state (reference data, market data, positions, the
+marks+Greeks feed, T-1 official snapshots); the transaction log carries
+event streams (orders, executions) with bookmark replay from start-of-day.
+Deephaven ingest adapters (`sow_and_subscribe` → `TablePublisher` →
+`last_by`) populate the same keyed source tables, so scripts 02–05 are
+unchanged. Topic design, coherence rules, and the EKS/EC2 deployment shape
+are in [DEPLOYMENT-AMPS-EKS.md](DEPLOYMENT-AMPS-EKS.md).
 
 ## Simplifications in the diagram
 
